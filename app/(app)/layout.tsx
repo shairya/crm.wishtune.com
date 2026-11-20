@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Activity, LayoutDashboard, LogOut, Menu, Settings, Users, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { Logo } from "@/components/ui";
+import { IS_SANDBOX, Logo, SandboxBanner } from "@/components/ui";
 
 const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -30,10 +30,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
+      <SandboxBanner />
       {open && <div className="fixed inset-0 z-40 bg-ink/40 md:hidden" onClick={() => setOpen(false)} />}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-ink text-white transition-transform md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-ink text-white transition-transform md:translate-x-0 ${IS_SANDBOX ? "top-7" : ""} ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >

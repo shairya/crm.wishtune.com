@@ -3,7 +3,7 @@
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { ErrorNote, Logo } from "@/components/ui";
+import { ErrorNote, Logo, SandboxBanner } from "@/components/ui";
 
 export default function LoginPage() {
   return (
@@ -44,6 +44,8 @@ function LoginForm() {
   }
 
   return (
+    <>
+    <SandboxBanner />
     <main className="flex min-h-screen items-center justify-center bg-ink p-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
@@ -85,5 +87,6 @@ function LoginForm() {
         </form>
       </div>
     </main>
+    </>
   );
 }

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
+const sandbox = process.env.NEXT_PUBLIC_APP_ENV === "sandbox";
+
 export const metadata: Metadata = {
-  title: "Wishtune CRM",
+  title: sandbox ? "[SANDBOX] Wishtune CRM" : "Wishtune CRM",
   description: "Wishtune contacts and sales",
   robots: { index: false, follow: false },
 };

@@ -487,6 +487,7 @@ type Integrations = {
   payhip: { url: string; configured: boolean; lastEventAt: string | null };
   signup: { url: string; allowedOrigins: string[]; configured: boolean; lastEventAt: string | null };
   contact: { url: string; configured: boolean; formName: string | null; lastEventAt: string | null };
+  netlifySignup: { url: string; configured: boolean; formNames: string[] };
   bots: { teleagentWebhookUrl: string; wyltoWebhookUrl: string };
   metaPixelNote: string;
 };
@@ -525,7 +526,7 @@ function IntegrationCard({
   url: string;
   configured: boolean;
   missing?: string;
-  lastEventAt: string | null;
+  lastEventAt?: string | null; // undefined = not tracked for this source
   extra?: React.ReactNode;
 }) {
   return (
@@ -537,7 +538,7 @@ function IntegrationCard({
       <p className="mt-1 text-sm text-ink-muted">{where}</p>
       <CopyField value={url} />
       {extra}
-      <p className="mt-2 text-xs text-ink-muted">Last received: {lastEventAt ? dateTime(lastEventAt) : "never"}</p>
+      {lastEventAt !== undefined && <p className="mt-2 text-xs text-ink-muted">Last received: {lastEventAt ? dateTime(lastEventAt) : "never"}</p>}
     </div>
   );
 }
@@ -564,6 +565,18 @@ function Integrations() {
         configured={data.signup.configured}
         lastEventAt={data.signup.lastEventAt}
         extra={<p className="mt-2 text-xs text-ink-muted">Accepted from: {data.signup.allowedOrigins.join(", ") || "—"}</p>}
+      />
+      <IntegrationCard
+        title="Sign-up forms on Netlify (e.g. offer-signup)"
+        where='Netlify → Forms → Form notifications → Outgoing webhook, event "New form submission", the sign-up form, same JWS secret token. Saved as Subscriber with consent, page and campaign.'
+        url={data.netlifySignup.url}
+        configured={data.netlifySignup.configured}
+        missing="NETLIFY_JWS_SECRET missing"
+        extra={
+          <p className="mt-2 text-xs text-ink-muted">
+            See Event log → source Sign-up form for arrivals. Accepted forms: {data.netlifySignup.formNames.length ? data.netlifySignup.formNames.join(", ") : "any"}
+          </p>
+        }
       />
       <IntegrationCard
         title="Contact form (Netlify)"
@@ -603,6 +616,13 @@ type BotsResponse = {
   providers: { name: string; label: string; channel: string; configured: boolean; missing: string[] }[];
   masterSwitch: boolean;
   counts: { with_mobile: number; reached: number; failed: number };
+  sandbox?: {
+    enabled: boolean;
+    allowlistFile?: string;
+    error?: string | null;
+    users?: { name: string; email: string | null; mobile: string | null }[];
+    testEmailDomains?: string[];
+  };
 };
 
 function Bots() {
@@ -671,8 +691,29 @@ function Bots() {
     );
   };
 
+  const sb = data.sandbox;
   return (
     <div className="space-y-6">
+      {sb?.enabled && (
+        <div className="rounded-xl2 border border-warning/40 bg-accent-light px-4 py-3 text-sm">
+          <p className="font-medium">Sandbox: calls and WhatsApp go only to these testers</p>
+          {sb.error && <p className="mt-1 text-danger">{sb.error}</p>}
+          <ul className="mt-2 space-y-1">
+            {(sb.users || []).map((u, i) => (
+              <li key={i} className="flex flex-wrap gap-x-3">
+                <span>{u.name || "—"}</span>
+                <span className="text-ink-muted">{u.email || "no email"}</span>
+                <span className={u.mobile ? "font-mono" : "text-danger"}>{u.mobile || "invalid / missing mobile — will not be contacted"}</span>
+              </li>
+            ))}
+            {!sb.users?.length && <li className="text-danger">Nobody — no messages can be sent.</li>}
+          </ul>
+          <p className="mt-2 text-xs text-ink-muted">
+            Edit {sb.allowlistFile} on the server (no restart needed). Anyone else&apos;s data that reaches the sandbox is anonymised; emails at{" "}
+            {(sb.testEmailDomains || []).join(", ")} and the testers above are kept as-is.
+          </p>
+        </div>
+      )}
       <div className={`rounded-xl2 border px-4 py-3 text-sm ${data.masterSwitch ? "border-success/30 bg-success/10" : "border-line bg-surface"}`}>
         {data.masterSwitch ? (
           <>Bots master switch is <b>on</b> (BOTS_ENABLED=true). Channels below that are on and have keys will run.</>

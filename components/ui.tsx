@@ -96,6 +96,18 @@ export function Pager({
   );
 }
 
+/** Shown on every page when the app is built with NEXT_PUBLIC_APP_ENV=sandbox. */
+export const IS_SANDBOX = process.env.NEXT_PUBLIC_APP_ENV === "sandbox";
+
+export function SandboxBanner() {
+  if (!IS_SANDBOX) return null;
+  return (
+    <div className="sticky top-0 z-[60] bg-warning px-4 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-white">
+      Sandbox — test data only · calls &amp; messages go to allowlisted testers only
+    </div>
+  );
+}
+
 /** Text wordmark. To use the real logo, put the file in /public and swap this for <img src="/wishtune-logo.svg" … />. */
 export function Logo({ light = false, size = "md" }: { light?: boolean; size?: "md" | "lg" }) {
   return (
